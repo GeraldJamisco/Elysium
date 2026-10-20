@@ -1,0 +1,30 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; background: #050a0c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #bcc8d0; user-select: none; }
+#mc-canvas { display: block; width: 100vw; height: 100vh; cursor: grab; }
+#mc-canvas:active { cursor: grabbing; }
+
+#hud { position: fixed; top: 18px; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; z-index: 10; }
+#hud .title { font-size: 14px; font-weight: 600; letter-spacing: 5px; color: #b8d0c8; text-shadow: 0 0 40px rgba(60,180,160,0.25); }
+#hud .sub { font-size: 10px; letter-spacing: 1px; color: #78908a; margin-top: 4px; text-shadow: 0 0 20px rgba(0,0,0,0.6); }
+#hud .stage { font-size: 11px; letter-spacing: 1px; color: #6a9a88; margin-top: 6px; text-shadow: 0 0 20px rgba(0,0,0,0.6); line-height: 1.5; }
+#hud .stage .key { display: inline-block; background: rgba(80,220,180,0.1); border: 1px solid rgba(80,220,180,0.15); border-radius: 3px; padding: 0 5px; font-size: 10px; line-height: 16px; margin: 0 1px; color: #8ac8b8; }
+
+#street-hint { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); background: rgba(10,18,16,0.6); backdrop-filter: blur(8px); border: 1px solid rgba(80,220,180,0.12); padding: 9px 20px; border-radius: 6px; font-size: 12px; color: #b8d8cc; letter-spacing: .4px; pointer-events: none; z-index: 20; opacity: 0; transition: opacity .5s; text-shadow: 0 1px 4px rgba(0,0,0,.5); }
+#street-hint.show { opacity: 1; }
+
+#descend-hint { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: rgba(10,18,16,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(80,220,180,0.15); padding: 6px 16px; border-radius: 5px; font-size: 11px; color: #90b0a8; pointer-events: none; z-index: 21; opacity: 0; transition: opacity .5s; letter-spacing: .3px; }
+#descend-hint.show { opacity: 1; }
+#descend-hint .key { display: inline-block; background: rgba(80,220,180,0.12); border: 1px solid rgba(80,220,180,0.2); border-radius: 3px; padding: 0 5px; font-size: 10px; line-height: 16px; margin: 0 2px; color: #b0d8cc; }
+
+#toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); padding: 7px 16px; border-radius: 5px; font-size: 12px; color: #90b0a8; pointer-events: none; z-index: 25; opacity: 0; transition: opacity .3s; white-space: nowrap; }
+#toast.show { opacity: 1; }
+
+#crosshair { position: fixed; top: 50%; left: 50%; width: 8px; height: 8px; transform: translate(-50%,-50%); pointer-events: none; z-index: 15; opacity: 0; transition: opacity .3s; }
+#crosshair:before, #crosshair:after { content: ''; display: block; position: absolute; background: rgba(80,220,180,0.3); }
+#crosshair:before { width: 1.5px; height: 100%; left: 50%; top: 0; transform: translateX(-50%); box-shadow: -4px 0 0 rgba(80,220,180,0.25), 4px 0 0 rgba(80,220,180,0.25); }
+#crosshair:after { height: 1.5px; width: 100%; top: 50%; left: 0; transform: translateY(-50%); }
+
+/* Eagle view: subtle ring instead of cross */
+#crosshair.eagle { width: 24px; height: 24px; opacity: 0.5 !important; }
+#crosshair.eagle:before, #crosshair.eagle:after { display: none; }
+#crosshair.eagle { border: 1.5px solid rgba(80,220,180,0.25); border-radius: 50%; background: rgba(80,220,180,0.04); }

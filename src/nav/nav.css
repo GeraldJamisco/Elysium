@@ -1,0 +1,520 @@
+/* ============================================================
+   ELYSIUM NAVIGATION — SURVEY INTERFACE
+
+   Identity rules, applied everywhere below:
+     · ONE accent, a biolum mint-green. No second hue anywhere.
+     · grounds are deep desaturated green-black, never blue-grey
+     · hairlines at 8-16% opacity instead of borders
+     · type is small, letterspaced and low-contrast; coordinates
+       and measurements are monospace, prose is not
+     · nothing moves faster than 420ms and nothing ever flashes
+   ============================================================ */
+
+:root {
+  --nav-accent: #4fe0ac;
+  --nav-accent-soft: rgba(79, 224, 172, 0.55);
+  --nav-ink: #dfeee7;
+  --nav-ink-soft: #92aca3;
+  --nav-ink-faint: #61807a;
+  --nav-ground: rgba(8, 20, 18, 0.80);
+  --nav-panel: rgba(11, 26, 23, 0.72);
+  --nav-line: rgba(79, 224, 172, 0.14);
+  --nav-line-soft: rgba(79, 224, 172, 0.075);
+  --nav-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* ---- Locator: the one persistent readout ---- */
+#nav-locator {
+  margin-top: 7px;
+  font-size: 10px; letter-spacing: 2.2px; text-transform: uppercase;
+  color: var(--nav-ink-soft);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  opacity: 0; transition: opacity .42s var(--nav-ease);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, .7);
+}
+body[data-nav-stage='walk'] #nav-locator,
+body[data-nav-stage='eagle'] #nav-locator { opacity: 1; }
+#nav-locator .mark {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--nav-accent); box-shadow: 0 0 10px rgba(79, 224, 172, .7); opacity: .85;
+}
+#nav-locator .place { color: var(--nav-ink); }
+#nav-locator .sep { color: var(--nav-ink-faint); }
+#nav-locator .ctx { color: var(--nav-ink-faint); letter-spacing: 1.6px; }
+
+/* ---- Shared panel chrome ---- */
+#nav-register, #nav-card, #nav-world, #nav-labels {
+  position: fixed; z-index: 30;
+  /* Containers are pointer-transparent so the planet behind them stays
+     clickable everywhere; only the controls below opt back in. */
+  pointer-events: none;
+  font-family: inherit;
+}
+body.nav-busy #nav-register,
+body.nav-busy #nav-card,
+body.nav-busy #nav-world,
+body.nav-busy #nav-labels { opacity: 0 !important; transition: opacity .3s; }
+
+/* ============================================================
+   REGISTER — the left rail
+   ============================================================ */
+#nav-register {
+  top: 0; left: 0; bottom: 0; width: 268px;
+  display: flex; flex-direction: column;
+  padding: 18px 0 18px 18px;
+  opacity: 0; transform: translateX(-10px);
+  transition: opacity .42s var(--nav-ease), transform .42s var(--nav-ease);
+}
+body[data-nav-stage='orbit'] #nav-register { opacity: 1; transform: none; }
+
+#nav-reg-toggle {
+  pointer-events: auto; align-self: flex-start;
+  display: flex; align-items: center; gap: 9px;
+  background: none; border: 0; cursor: pointer;
+  padding: 6px 2px; margin-bottom: 10px;
+  color: var(--nav-ink-soft);
+  font: inherit; font-size: 9.5px; letter-spacing: 3px;
+  transition: color .3s var(--nav-ease);
+}
+#nav-reg-toggle:hover { color: var(--nav-accent); }
+#nav-reg-toggle .bars { width: 13px; height: 9px; position: relative; display: block; }
+#nav-reg-toggle .bars::before, #nav-reg-toggle .bars::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 1px;
+  background: currentColor; opacity: .75;
+  transition: transform .42s var(--nav-ease);
+}
+#nav-reg-toggle .bars::before { top: 1px; }
+#nav-reg-toggle .bars::after { bottom: 1px; }
+#nav-register:not(.is-open) #nav-reg-toggle .bars::before { transform: translateY(3px); }
+#nav-register:not(.is-open) #nav-reg-toggle .bars::after { transform: translateY(-3px); }
+
+.reg-body {
+  pointer-events: auto; flex: 1; min-height: 0;
+  display: flex; flex-direction: column;
+  background: var(--nav-ground); backdrop-filter: blur(14px);
+  border: 1px solid var(--nav-line-soft); border-radius: 12px; overflow: hidden;
+  transition: opacity .42s var(--nav-ease), transform .42s var(--nav-ease);
+}
+#nav-register:not(.is-open) .reg-body {
+  opacity: 0; transform: translateX(-14px); pointer-events: none;
+}
+
+.reg-body header { padding: 17px 17px 14px; border-bottom: 1px solid var(--nav-line-soft); }
+.eyebrow { font-size: 9px; letter-spacing: 3.4px; color: var(--nav-accent-soft); text-transform: uppercase; }
+.reg-body h3 { font-size: 15px; font-weight: 500; letter-spacing: .5px; color: var(--nav-ink); margin-top: 7px; }
+.reg-meta { font-size: 10.5px; color: var(--nav-ink-faint); margin-top: 5px; }
+.reg-bar { margin-top: 9px; height: 2px; background: var(--nav-line-soft); border-radius: 2px; overflow: hidden; }
+.reg-bar span { display: block; height: 100%; background: var(--nav-accent); opacity: .7; }
+
+.reg-scroll { flex: 1; overflow-y: auto; padding: 4px 0 8px; }
+.reg-scroll::-webkit-scrollbar { width: 3px; }
+.reg-scroll::-webkit-scrollbar-thumb { background: var(--nav-line); border-radius: 2px; }
+
+.reg-group { padding: 7px 0 2px; }
+.reg-group h4 {
+  font-size: 8.5px; letter-spacing: 2.6px; text-transform: uppercase;
+  color: var(--nav-ink-faint); font-weight: 500; padding: 6px 17px 7px;
+}
+.reg-site {
+  width: 100%; display: flex; align-items: center; gap: 11px;
+  background: none; border: 0; cursor: pointer; text-align: left;
+  padding: 7px 17px; color: var(--nav-ink-soft); font: inherit;
+  position: relative;
+  transition: background .28s var(--nav-ease), color .28s var(--nav-ease);
+}
+.reg-site::before {
+  content: ''; position: absolute; left: 0; top: 5px; bottom: 5px; width: 2px;
+  background: var(--nav-accent); opacity: 0; border-radius: 0 2px 2px 0;
+  transition: opacity .28s var(--nav-ease);
+}
+.reg-site:hover { background: rgba(79, 224, 172, .05); color: var(--nav-ink); }
+.reg-site.is-active { background: rgba(79, 224, 172, .085); color: var(--nav-ink); }
+.reg-site.is-active::before { opacity: .9; }
+.reg-site:focus-visible { outline: 1px solid var(--nav-line); outline-offset: -1px; }
+
+.reg-thumb { width: 34px; height: 34px; flex: none; border-radius: 50%; display: block; }
+.reg-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.reg-name { font-size: 12.5px; letter-spacing: .3px; }
+.reg-epithet {
+  font-size: 10px; color: var(--nav-ink-faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.reg-state { flex: none; }
+
+/* An open ring for a surveyed site, a filled one for the settled place.
+   The only filled mark in the register is the only place you can go. */
+.glyph { width: 7px; height: 7px; display: block; border-radius: 50%; border: 1px solid var(--nav-ink-faint); }
+.reg-site.is-settled .glyph {
+  border-color: var(--nav-accent); background: var(--nav-accent);
+  box-shadow: 0 0 9px rgba(79, 224, 172, .55);
+}
+
+.reg-foot {
+  padding: 11px 17px; border-top: 1px solid var(--nav-line-soft);
+  font-size: 9.5px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--nav-ink-faint);
+}
+
+/* ============================================================
+   WORLD PANEL — a caption under the planet, not a column beside it
+   ============================================================ */
+#nav-world {
+  left: 300px; right: 372px; bottom: 24px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 20px;
+  opacity: 0; transition: opacity .5s var(--nav-ease), left .42s var(--nav-ease);
+  text-align: left;
+}
+/* With the register closed the strip reclaims the space it left behind. */
+body[data-nav-stage='orbit'] #nav-register:not(.is-open) ~ #nav-world { left: 90px; }
+body[data-nav-stage='orbit'] #nav-world { opacity: 1; }
+
+.w-id { flex: none; }
+.w-name {
+  font-size: 23px; font-weight: 300; letter-spacing: 8px;
+  color: var(--nav-accent); line-height: 1;
+  text-shadow: 0 0 40px rgba(79, 224, 172, .35);
+}
+.w-tag { margin-top: 6px; font-size: 10.5px; letter-spacing: .5px; color: var(--nav-ink-faint); }
+
+.w-facts {
+  list-style: none; display: flex; align-items: center; gap: 16px;
+  padding-left: 22px; border-left: 1px solid var(--nav-line-soft);
+  flex-wrap: wrap; justify-content: flex-end;
+}
+.w-facts li {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10.5px; color: var(--nav-ink-soft); white-space: nowrap;
+}
+.w-dot {
+  width: 5px; height: 5px; flex: none; border-radius: 50%;
+  background: var(--nav-accent); opacity: .6;
+}
+/* The rotate hint belongs to the planet, so it sits under the planet. */
+#nav-hint {
+  position: fixed; z-index: 30; pointer-events: none;
+  left: 300px; right: 372px; bottom: 92px; text-align: center;
+  font-size: 9px; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--nav-ink-faint); opacity: 0;
+  transition: opacity .5s var(--nav-ease), left .42s var(--nav-ease);
+}
+body[data-nav-stage='orbit'] #nav-hint { opacity: .6; }
+body.nav-busy #nav-hint { opacity: 0 !important; }
+body[data-nav-stage='orbit'] #nav-register:not(.is-open) ~ #nav-hint { left: 90px; }
+
+/* ============================================================
+   GLOBE LABELS — names pinned to the planet
+   ============================================================ */
+#nav-labels { inset: 0; }
+body:not([data-nav-stage='orbit']) #nav-labels { opacity: 0; pointer-events: none; }
+.globe-label {
+  position: absolute; top: 0; left: 0;
+  pointer-events: auto; cursor: pointer;
+  display: flex; align-items: center; gap: 7px;
+  background: rgba(7, 19, 17, 0.72);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--nav-line-soft);
+  border-radius: 20px; padding: 4px 11px 4px 5px;
+  color: var(--nav-ink-soft); font: inherit; font-size: 11px; letter-spacing: .4px;
+  opacity: 0; transform: translate(-50%, -50%);
+  transition: opacity .42s var(--nav-ease), color .28s var(--nav-ease),
+              border-color .28s var(--nav-ease), background .28s var(--nav-ease);
+}
+.globe-label.is-on { opacity: 1; }
+.globe-label:not(.is-on) { pointer-events: none; }
+.globe-label:hover { color: var(--nav-ink); border-color: var(--nav-line); }
+.globe-label.is-active {
+  color: var(--nav-ink);
+  border-color: rgba(79, 224, 172, .45);
+  background: rgba(10, 30, 26, 0.85);
+}
+.gl-pin {
+  width: 17px; height: 17px; flex: none; border-radius: 50%;
+  border: 1px solid var(--nav-line); position: relative;
+}
+.globe-label.is-settled .gl-pin { border-color: rgba(79, 224, 172, .5); }
+.gl-pin::after {
+  content: ''; position: absolute; inset: 5px; border-radius: 50%;
+  background: var(--nav-ink-faint);
+}
+.globe-label.is-settled .gl-pin::after {
+  background: var(--nav-accent); box-shadow: 0 0 8px rgba(79, 224, 172, .8);
+}
+.globe-label.is-active .gl-pin { border-color: var(--nav-accent); }
+
+/* ============================================================
+   SITE CARD — the right panel
+   ============================================================ */
+#nav-card {
+  top: 18px; right: 18px; bottom: 18px; width: 336px;
+  background: var(--nav-ground); backdrop-filter: blur(14px);
+  border: 1px solid var(--nav-line-soft); border-radius: 12px;
+  overflow-y: auto; overflow-x: hidden;
+  opacity: 0; transform: translateX(14px);
+  transition: opacity .42s var(--nav-ease), transform .42s var(--nav-ease);
+}
+#nav-card.is-open { opacity: 1; transform: none; pointer-events: auto; }
+body:not([data-nav-stage='orbit']) #nav-card { opacity: 0; pointer-events: none; }
+#nav-card::-webkit-scrollbar { width: 3px; }
+#nav-card::-webkit-scrollbar-thumb { background: var(--nav-line); border-radius: 2px; }
+
+.card-close {
+  position: absolute; top: 9px; right: 11px; z-index: 2;
+  background: rgba(5, 14, 12, .5); border: 0; border-radius: 50%; cursor: pointer;
+  width: 24px; height: 24px; line-height: 1;
+  color: var(--nav-ink-soft); font-size: 16px;
+  transition: color .28s var(--nav-ease), background .28s var(--nav-ease);
+}
+.card-close:hover { color: var(--nav-accent); background: rgba(5, 14, 12, .8); }
+
+.c-hero { position: relative; margin: 12px 12px 0; border-radius: 9px; overflow: hidden; background: #081815; }
+.c-photo, .c-chart { display: block; width: 100%; height: 182px; object-fit: cover; }
+/* [hidden] has to win over the display rule above, or the chart renders
+   underneath the photograph rather than instead of it. */
+#nav-card [hidden] { display: none !important; }
+.c-badge {
+  position: absolute; top: 9px; left: 9px;
+  font-size: 8px; letter-spacing: 1.8px; text-transform: uppercase;
+  padding: 4px 9px; border-radius: 20px;
+  background: rgba(6, 18, 15, .78); color: var(--nav-ink-faint);
+  border: 1px solid var(--nav-line-soft);
+}
+.c-badge.is-settled { color: #0a1a16; background: var(--nav-accent); border-color: transparent; font-weight: 600; }
+.c-kind {
+  position: absolute; bottom: 8px; right: 10px;
+  font-size: 8px; letter-spacing: 2px; color: rgba(223, 238, 231, .6);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.card-body { padding: 15px 17px 18px; }
+.c-name { font-size: 21px; font-weight: 400; letter-spacing: .3px; color: var(--nav-ink); line-height: 1.15; }
+.c-sub { margin-top: 5px; font-size: 11.5px; color: var(--nav-ink-faint); letter-spacing: .3px; }
+.c-blurb { margin-top: 12px; font-size: 12.5px; line-height: 1.62; color: var(--nav-ink-soft); }
+
+.c-pills { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 13px; }
+.c-pills li {
+  font-size: 10px; letter-spacing: .5px; padding: 4px 11px; border-radius: 20px;
+  border: 1px solid var(--nav-line-soft); color: var(--nav-ink-soft);
+}
+
+.c-stats {
+  display: flex; margin-top: 15px;
+  border-top: 1px solid var(--nav-line-soft); border-bottom: 1px solid var(--nav-line-soft);
+}
+.c-stat { flex: 1; padding: 11px 4px; text-align: center; }
+.c-stat + .c-stat { border-left: 1px solid var(--nav-line-soft); }
+.c-stat b {
+  display: block; font-size: 14px; font-weight: 500; color: var(--nav-ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.c-stat span {
+  display: block; margin-top: 3px; font-size: 8.5px;
+  letter-spacing: 1.6px; text-transform: uppercase; color: var(--nav-ink-faint);
+}
+
+.c-go {
+  width: 100%; margin-top: 16px; cursor: pointer;
+  background: var(--nav-accent); border: 1px solid var(--nav-accent); border-radius: 7px;
+  padding: 12px 14px; color: #06150f;
+  font: inherit; font-size: 11.5px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase;
+  transition: background .28s var(--nav-ease), box-shadow .28s var(--nav-ease);
+}
+.c-go:hover:not(:disabled) { background: #6ff0c2; box-shadow: 0 0 26px rgba(79, 224, 172, .3); }
+.c-go:disabled {
+  cursor: default; background: none; border-color: var(--nav-line-soft);
+  color: var(--nav-ink-faint); font-weight: 500;
+}
+.c-note { margin-top: 9px; font-size: 10px; line-height: 1.5; color: var(--nav-ink-faint); text-align: center; }
+
+.c-places { margin-top: 19px; }
+.c-places h5 {
+  font-size: 9px; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--nav-ink-faint); font-weight: 500; margin-bottom: 9px;
+}
+.c-place-list { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+.c-place {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px; border-radius: 8px; border: 1px solid var(--nav-line-soft);
+  transition: border-color .28s var(--nav-ease), background .28s var(--nav-ease);
+}
+.c-place:hover { border-color: var(--nav-line); background: rgba(79, 224, 172, .04); }
+.c-place img, .c-place-blank {
+  width: 52px; height: 40px; flex: none; border-radius: 5px; object-fit: cover; display: block;
+  background: rgba(79, 224, 172, .06);
+}
+.c-place-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.c-place-text b { font-size: 11.5px; font-weight: 500; color: var(--nav-ink); letter-spacing: .2px; }
+.c-place-text span { font-size: 10px; line-height: 1.4; color: var(--nav-ink-faint); }
+
+.c-gauges { margin-top: 19px; border-top: 1px solid var(--nav-line-soft); padding-top: 13px; }
+.c-gauge { display: flex; align-items: center; gap: 12px; padding: 5px 0; }
+.c-gauge dt {
+  flex: none; width: 88px; font-size: 9px; letter-spacing: 1.6px;
+  text-transform: uppercase; color: var(--nav-ink-faint);
+}
+.c-gauge dd { flex: 1; }
+.c-gauge .bar { display: block; height: 3px; border-radius: 2px; background: var(--nav-line-soft); overflow: hidden; }
+.c-gauge .bar i { display: block; height: 100%; background: var(--nav-accent); opacity: .72; border-radius: 2px; }
+
+/* ---- Narrow viewports: the planet keeps priority ---- */
+@media (max-width: 1240px) {
+  #nav-hint { display: none; }
+}
+@media (max-width: 1000px) {
+  #nav-world { display: none; }
+}
+@media (max-width: 1080px) {
+  #nav-register { width: 236px; }
+  #nav-card { width: 292px; }
+}
+@media (max-width: 860px) {
+  #nav-card { width: 264px; }
+  .c-photo, .c-chart { height: 150px; }
+}
+
+/* The world panel says what the orbit HUD used to say, and says it better.
+   The HUD keeps its text (other code reads it) and simply gives way. */
+body[data-nav-stage='orbit'] #hud-stage { opacity: 0; pointer-events: none; }
+body[data-nav-stage='orbit'] #hud .title { opacity: .32; }
+#hud-stage { transition: opacity .42s var(--nav-ease); }
+
+/* ============================================================
+   PLACE SEARCH — finding a named place from inside the world
+   ============================================================ */
+#nav-search {
+  position: fixed; z-index: 32; top: 136px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center;
+  pointer-events: none;
+  opacity: 0; transition: opacity .42s var(--nav-ease);
+}
+body[data-nav-stage='eagle'] #nav-search,
+body[data-nav-stage='walk'] #nav-search { opacity: 1; }
+body.nav-busy #nav-search { opacity: 0 !important; }
+
+#ns-toggle {
+  pointer-events: auto; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(8, 20, 18, .62); backdrop-filter: blur(10px);
+  border: 1px solid var(--nav-line-soft); border-radius: 20px;
+  padding: 6px 14px 6px 11px;
+  color: var(--nav-ink-faint); font: inherit;
+  font-size: 9px; letter-spacing: 2.4px;
+  transition: color .28s var(--nav-ease), border-color .28s var(--nav-ease);
+}
+#ns-toggle:hover { color: var(--nav-accent); border-color: var(--nav-line); }
+#nav-search.is-open #ns-toggle { opacity: 0; pointer-events: none; }
+
+/* A ring and a stem: a magnifier drawn rather than imported. */
+.ns-glass {
+  width: 11px; height: 11px; flex: none; position: relative; display: block;
+}
+.ns-glass::before {
+  content: ''; position: absolute; inset: 0 3px 3px 0;
+  border: 1px solid currentColor; border-radius: 50%;
+}
+.ns-glass::after {
+  content: ''; position: absolute; right: 0; bottom: 0;
+  width: 4px; height: 1px; background: currentColor;
+  transform: rotate(45deg); transform-origin: right center;
+}
+
+.ns-panel {
+  position: absolute; top: 0; width: 396px;
+  background: var(--nav-ground); backdrop-filter: blur(16px);
+  border: 1px solid var(--nav-line-soft); border-radius: 11px;
+  overflow: hidden;
+  opacity: 0; transform: translateY(-6px) scale(.985);
+  pointer-events: none;
+  transition: opacity .3s var(--nav-ease), transform .3s var(--nav-ease);
+}
+#nav-search.is-open .ns-panel { opacity: 1; transform: none; pointer-events: auto; }
+
+.ns-field {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 12px 11px 14px;
+  border-bottom: 1px solid var(--nav-line-soft);
+  color: var(--nav-ink-faint);
+}
+#ns-input {
+  flex: 1; background: none; border: 0; outline: none;
+  color: var(--nav-ink); font: inherit; font-size: 13px; letter-spacing: .2px;
+}
+#ns-input::placeholder { color: var(--nav-ink-faint); }
+.ns-clear {
+  background: none; border: 1px solid var(--nav-line-soft); border-radius: 4px;
+  cursor: pointer; padding: 2px 6px;
+  color: var(--nav-ink-faint); font: inherit; font-size: 8.5px; letter-spacing: 1.4px;
+  transition: color .28s var(--nav-ease), border-color .28s var(--nav-ease);
+}
+.ns-clear:hover { color: var(--nav-accent); border-color: var(--nav-line); }
+
+.ns-results { list-style: none; max-height: 306px; overflow-y: auto; padding: 5px; }
+.ns-results::-webkit-scrollbar { width: 3px; }
+.ns-results::-webkit-scrollbar-thumb { background: var(--nav-line); border-radius: 2px; }
+
+.ns-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 7px 8px; border-radius: 7px; cursor: pointer;
+  transition: background .2s var(--nav-ease);
+}
+.ns-item.is-cursor { background: rgba(79, 224, 172, .09); }
+.ns-item img, .ns-blank {
+  width: 54px; height: 40px; flex: none; border-radius: 5px;
+  object-fit: cover; display: block; background: rgba(79, 224, 172, .06);
+}
+.ns-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ns-text b { font-size: 12.5px; font-weight: 500; color: var(--nav-ink); letter-spacing: .2px; }
+.ns-text span {
+  font-size: 10px; line-height: 1.4; color: var(--nav-ink-faint);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ns-go {
+  width: 13px; height: 9px; flex: none; position: relative;
+  opacity: 0; transition: opacity .2s var(--nav-ease);
+}
+.ns-item.is-cursor .ns-go { opacity: .9; }
+.ns-go::before {
+  content: ''; position: absolute; left: 0; top: 4px; right: 3px; height: 1px;
+  background: var(--nav-accent);
+}
+.ns-go::after {
+  content: ''; position: absolute; right: 0; top: 1.5px;
+  width: 6px; height: 6px;
+  border-top: 1px solid var(--nav-accent); border-right: 1px solid var(--nav-accent);
+  transform: rotate(45deg);
+}
+.ns-empty {
+  padding: 16px 14px 18px; text-align: center;
+  font-size: 11px; color: var(--nav-ink-faint);
+}
+
+/* ---- Waypoint readout, living with the locator ---- */
+#nav-waypoint {
+  margin-top: 7px;
+  display: none; align-items: center; justify-content: center; gap: 9px;
+  pointer-events: none;
+}
+#nav-waypoint.is-on { display: flex; }
+.wp-arrow {
+  width: 0; height: 0; flex: none;
+  border-left: 4.5px solid transparent; border-right: 4.5px solid transparent;
+  border-bottom: 8px solid var(--nav-accent);
+  transition: transform .2s linear;
+}
+.wp-name {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--nav-ink);
+}
+.wp-dist {
+  font-size: 10px; color: var(--nav-accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.wp-drop {
+  pointer-events: auto; cursor: pointer;
+  background: none; border: 0; padding: 0 3px;
+  color: var(--nav-ink-faint); font-size: 13px; line-height: 1;
+  transition: color .28s var(--nav-ease);
+}
+.wp-drop:hover { color: var(--nav-accent); }
+
+@media (max-width: 860px) {
+  .ns-panel { width: 300px; }
+}
